@@ -1,83 +1,118 @@
 @custom-variant dark (&:is(.dark *));
 
+/* Step transitions for multi-step wizards (e.g. identity verification) —
+   a position-only slide, deliberately no opacity change, so a new step
+   reads as sliding into place rather than fading in. */
+@keyframes step-slide-in-right {
+  from { transform: translateX(28px); }
+  to { transform: translateX(0); }
+}
+@keyframes step-slide-in-left {
+  from { transform: translateX(-28px); }
+  to { transform: translateX(0); }
+}
+
+/* A restrained, single entrance for whole dashboard sections — not a
+   flashy stagger, just enough motion that the page feels alive on load. */
+@keyframes dashboard-section-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 :root {
   --font-size: 16px;
-  --background: #080808;
-  --foreground: #F0EDE4;
-  --card: #111111;
-  --card-foreground: #F0EDE4;
-  --popover: #111111;
-  --popover-foreground: #F0EDE4;
-  --primary: #C9A420;
-  --primary-foreground: #080808;
-  --secondary: #1A1A1A;
-  --secondary-foreground: #F0EDE4;
-  --muted: #161616;
-  --muted-foreground: #6B6B6B;
-  --accent: #C9A420;
-  --accent-foreground: #080808;
+  --background: #EEEBE2;
+  --foreground: #211C10;
+  --card: #F7F4EE;
+  --card-foreground: #211C10;
+  --popover: #F7F4EE;
+  --popover-foreground: #211C10;
+  --primary: #1A5653;
+  --primary-foreground: #FFFFFF;
+  --secondary: #ECE8DE;
+  --secondary-foreground: #211C10;
+  --muted: #F0EDE4;
+  --muted-foreground: #8A8578;
+  --accent: #1A5653;
+  --accent-foreground: #FFFFFF;
   --destructive: #DC2626;
-  --destructive-foreground: #F0EDE4;
-  --border: rgba(255, 255, 255, 0.1);
+  --destructive-foreground: #FFFFFF;
+  --success: #16A34A;
+  --success-foreground: #FFFFFF;
+  --warning: #C2410C;
+  --warning-foreground: #FFFFFF;
+  --info: #4F5FD6;
+  --info-foreground: #FFFFFF;
+  --dispute: #C23B76;
+  --dispute-foreground: #FFFFFF;
+  --border: rgba(20, 16, 8, 0.1);
   --input: transparent;
-  --input-background: #1A1A1A;
-  --switch-background: #2D2D2D;
+  --input-background: #F7F4EC;
+  --switch-background: #D8D2C2;
   --font-weight-medium: 600;
   --font-weight-normal: 400;
-  --ring: #C9A420;
-  --chart-1: #C9A420;
-  --chart-2: #22C55E;
-  --chart-3: #3B82F6;
-  --chart-4: #F97316;
-  --chart-5: #EF4444;
-  --radius: 0.25rem;
-  --sidebar: #0F0F0F;
-  --sidebar-foreground: #F0EDE4;
-  --sidebar-primary: #C9A420;
-  --sidebar-primary-foreground: #080808;
-  --sidebar-accent: #1A1A1A;
-  --sidebar-accent-foreground: #F0EDE4;
-  --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: #C9A420;
+  --ring: #1A5653;
+  --chart-1: #1A5653;
+  --chart-2: #16A34A;
+  --chart-3: #4F5FD6;
+  --chart-4: #C2410C;
+  --chart-5: #DC2626;
+  --radius: 0.5rem;
+  --sidebar: #EEEBE2;
+  --sidebar-foreground: #211C10;
+  --sidebar-primary: #1A5653;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #ECE8DE;
+  --sidebar-accent-foreground: #211C10;
+  --sidebar-border: rgba(20, 16, 8, 0.1);
+  --sidebar-ring: #1A5653;
 }
 
 .dark {
-  --background: #080808;
-  --foreground: #F0EDE4;
-  --card: #111111;
-  --card-foreground: #F0EDE4;
-  --popover: #111111;
-  --popover-foreground: #F0EDE4;
-  --primary: #C9A420;
-  --primary-foreground: #080808;
+  --background: #0A0A0A;
+  --foreground: #F2EFE6;
+  --card: #111113;
+  --card-foreground: #F2EFE6;
+  --popover: #111113;
+  --popover-foreground: #F2EFE6;
+  --primary: #4FA69D;
+  --primary-foreground: #0D0900;
   --secondary: #1A1A1A;
-  --secondary-foreground: #F0EDE4;
+  --secondary-foreground: #F2EFE6;
   --muted: #161616;
-  --muted-foreground: #6B6B6B;
-  --accent: #C9A420;
-  --accent-foreground: #080808;
-  --destructive: #DC2626;
-  --destructive-foreground: #F0EDE4;
-  --border: rgba(255, 255, 255, 0.1);
+  --muted-foreground: #8A8A85;
+  --accent: #4FA69D;
+  --accent-foreground: #0D0900;
+  --destructive: #EF4444;
+  --destructive-foreground: #0D0900;
+  --success: #22C55E;
+  --success-foreground: #0D0900;
+  --warning: #F97316;
+  --warning-foreground: #0D0900;
+  --info: #818CF8;
+  --info-foreground: #0D0900;
+  --dispute: #F472B6;
+  --dispute-foreground: #0D0900;
+  --border: rgba(255, 255, 255, 0.08);
   --input: transparent;
-  --input-background: #1A1A1A;
+  --input-background: #161616;
   --switch-background: #2D2D2D;
   --font-weight-medium: 600;
   --font-weight-normal: 400;
-  --ring: #C9A420;
-  --chart-1: #C9A420;
+  --ring: #4FA69D;
+  --chart-1: #4FA69D;
   --chart-2: #22C55E;
-  --chart-3: #3B82F6;
+  --chart-3: #818CF8;
   --chart-4: #F97316;
   --chart-5: #EF4444;
-  --sidebar: #0F0F0F;
-  --sidebar-foreground: #F0EDE4;
-  --sidebar-primary: #C9A420;
-  --sidebar-primary-foreground: #080808;
+  --sidebar: #0A0A0A;
+  --sidebar-foreground: #F2EFE6;
+  --sidebar-primary: #4FA69D;
+  --sidebar-primary-foreground: #0D0900;
   --sidebar-accent: #1A1A1A;
-  --sidebar-accent-foreground: #F0EDE4;
-  --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: #C9A420;
+  --sidebar-accent-foreground: #F2EFE6;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #4FA69D;
 }
 
 @theme inline {
@@ -97,6 +132,14 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-dispute: var(--dispute);
+  --color-dispute-foreground: var(--dispute-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-input-background: var(--input-background);
@@ -119,8 +162,9 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-display: "Barlow Condensed", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: var(--font-lora), Georgia, serif;
+  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
 @layer base {
@@ -130,7 +174,7 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: "DM Sans", system-ui, sans-serif;
+    font-family: var(--font-sans);
   }
 
   html {
@@ -140,25 +184,25 @@
   h1 {
     font-size: var(--text-2xl);
     font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    line-height: 1.4;
   }
 
   h2 {
     font-size: var(--text-xl);
     font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    line-height: 1.4;
   }
 
   h3 {
     font-size: var(--text-lg);
     font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    line-height: 1.4;
   }
 
   h4 {
     font-size: var(--text-base);
     font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    line-height: 1.4;
   }
 
   label {
