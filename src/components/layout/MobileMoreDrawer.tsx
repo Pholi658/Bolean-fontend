@@ -7,7 +7,7 @@ import { ArrowLeftRight, LogOut, X } from "lucide-react";
 import { TalkToAdminButton } from "@/components/support/TalkToAdminButton";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useLogout } from "@/hooks/useAuth";
-import type { AuthUser } from "@/store/auth-store";
+import type { UserResponse as AuthUser } from "@/lib/types";
 
 const TRANSITION_MS = 220;
 

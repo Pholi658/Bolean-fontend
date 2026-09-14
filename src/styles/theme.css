@@ -19,13 +19,35 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* The lender Overdue card's all-clear reveal. The figure slides up out of
+   its own overflow-hidden line box (a masked ticker roll, so it never
+   floats over the label above); the statement under it follows with a
+   softer rise-and-fade a beat later. */
+@keyframes kpi-roll-up {
+  from { transform: translateY(105%); }
+  to { transform: translateY(0); }
+}
+@keyframes kpi-rise-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kpi-reveal, .kpi-reveal * { animation: none !important; }
+}
+
 :root {
   --font-size: 16px;
   --background: #EEEBE2;
   --foreground: #211C10;
-  --card: #F7F4EE;
+  /* Deliberately darker than --background, not lighter — a shallow inset
+     tray rather than a paper-white sheet, so a card reads as a distinct
+     surface at a glance instead of blending into the page (the old
+     #F7F4EE was *lighter* than the page and measured ~1.09:1 contrast
+     against it — nearly invisible). */
+  --card: #D2CDBF;
   --card-foreground: #211C10;
-  --popover: #F7F4EE;
+  --card-shadow: 0 1px 2px rgba(20, 16, 8, 0.05), 0 8px 20px -10px rgba(20, 16, 8, 0.16);
+  --popover: #D2CDBF;
   --popover-foreground: #211C10;
   --primary: #1A5653;
   --primary-foreground: #FFFFFF;
@@ -71,9 +93,17 @@
 .dark {
   --background: #0A0A0A;
   --foreground: #F2EFE6;
-  --card: #111113;
+  /* Lighter than --background by a real margin, not the old #111113 (which
+     measured ~1.05:1 contrast against #0A0A0A — indistinguishable) — but
+     pulled back from an earlier #242424 pass that read as "lit up"/selected
+     rather than a resting surface, especially combined with an inset top
+     highlight (removed below; a bright edge line was the main culprit).
+     Plain soft outer shadow only now — enough for a believable lift
+     without the glow. */
+  --card: #1E1E1E;
   --card-foreground: #F2EFE6;
-  --popover: #111113;
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 16px -8px rgba(0, 0, 0, 0.5);
+  --popover: #242424;
   --popover-foreground: #F2EFE6;
   --primary: #4FA69D;
   --primary-foreground: #0D0900;
@@ -120,6 +150,7 @@
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --shadow-card: var(--card-shadow);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);

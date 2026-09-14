@@ -1,11 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
 import { Camera, CameraOff, AlertTriangle, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { captureFrameToCanvas, canvasToBlob, checkImageQuality } from "@/lib/image-quality";
-
-type CameraState = "idle" | "loading" | "live" | "denied" | "unavailable";
+import { useCameraCapture } from "@/hooks/useCameraCapture";
 
 const CHECKLIST = ["Good lighting", "Face clearly visible", "Look directly at camera"];
 
@@ -48,68 +45,8 @@ function StatusPanel({
 }
 
 export function SelfieCapturePanel({ onCaptured }: { onCaptured: (blob: Blob) => void }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const [state, setState] = useState<CameraState>("idle");
-  const [qualityMessage, setQualityMessage] = useState<string | null>(null);
-  const [capturing, setCapturing] = useState(false);
-  const [videoReady, setVideoReady] = useState(false);
-
-  const stopStream = useCallback(() => {
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
-  }, []);
-
-  // Always release the camera on unmount, no matter what state we're in —
-  // this fires when the wizard slides away to a different step, too.
-  useEffect(() => stopStream, [stopStream]);
-
-  // The <video> element only mounts once state flips to "live", so the
-  // stream can't be attached inline inside requestCamera (the ref is still
-  // null at that point) — attach it here once the element actually exists.
-  useEffect(() => {
-    if (state === "live" && videoRef.current && streamRef.current) {
-      videoRef.current.srcObject = streamRef.current;
-    }
-  }, [state]);
-
-  const requestCamera = useCallback(async () => {
-    setState("loading");
-    setVideoReady(false);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: false,
-      });
-      streamRef.current = stream;
-      setState("live");
-    } catch (err) {
-      const name = err instanceof DOMException ? err.name : "";
-      if (name === "NotAllowedError" || name === "PermissionDeniedError") {
-        setState("denied");
-      } else {
-        setState("unavailable");
-      }
-    }
-  }, []);
-
-  const handleCapture = async () => {
-    if (!videoRef.current || !videoRef.current.videoWidth || !videoRef.current.videoHeight) return;
-    setCapturing(true);
-    setQualityMessage(null);
-    const canvas = captureFrameToCanvas(videoRef.current);
-    const quality = checkImageQuality(canvas);
-
-    if (!quality.passed) {
-      setQualityMessage(quality.message ?? "Image too dark or blurry. Please retake in better lighting.");
-      setCapturing(false);
-      return;
-    }
-
-    const blob = await canvasToBlob(canvas);
-    stopStream();
-    onCaptured(blob);
-  };
+  const { state, videoRef, requestCamera, handleCapture, qualityMessage, capturing, videoReady, setVideoReady } =
+    useCameraCapture(onCaptured);
 
   return (
     <div className="max-w-[640px] mx-auto w-full">

@@ -3,17 +3,21 @@ import { Card } from "@/components/ui/Card";
 import { formatDate } from "@/lib/format";
 import type { ReviewOut } from "@/lib/types";
 
-export function ReviewsSection({
-  reviews,
-  avgRating,
-}: {
-  reviews: ReviewOut[];
-  /** Only available for your own profile — the backend has no aggregate
-   *  rating endpoint for other users, and individual reviews don't carry a
-   *  rating field at all, so this is omitted (not faked) when viewing
-   *  someone else. */
-  avgRating?: number;
-}) {
+function Stars({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-0.5" aria-label={`${rating} out of 5 stars`}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star
+          key={i}
+          size={12}
+          className={i <= rating ? "fill-primary text-primary" : "fill-transparent text-border"}
+        />
+      ))}
+    </div>
+  );
+}
+
+export function ReviewsSection({ reviews, avgRating }: { reviews: ReviewOut[]; avgRating?: number }) {
   return (
     <Card>
       <div className="flex items-center justify-between px-5 py-4 border-b border-border">
@@ -38,7 +42,8 @@ export function ReviewsSection({
         <div>
           {reviews.map((review) => (
             <div key={review.id} className="px-5 py-4 border-b border-border/60 last:border-b-0">
-              <p className="text-[13.5px] text-foreground/90 leading-relaxed">{review.msg}</p>
+              <Stars rating={review.rating} />
+              <p className="text-[13.5px] text-foreground/90 leading-relaxed mt-1.5">{review.msg}</p>
               <p className="text-[11.5px] text-muted-foreground mt-2">{formatDate(review.created_at)}</p>
             </div>
           ))}

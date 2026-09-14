@@ -10,11 +10,10 @@ import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useCurrentUser } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUsers";
-import { useConsumerAnalytics } from "@/hooks/useAnalytics";
+import { useUserAnalytics } from "@/hooks/useAnalytics";
 import { useMySessionsAsBorrower, useUserSessionHistory } from "@/hooks/useSessions";
 import { useMyReviews, useReviewsForUser } from "@/hooks/useReviews";
 import { useRequestPermission } from "@/hooks/usePermissions";
-import { summarizeSessions } from "@/lib/session-summary";
 import { formatMaloti } from "@/lib/format";
 import { getFriendlyErrorMessage } from "@/lib/errors";
 import { ProfileOverviewCard } from "@/components/profile/ProfileOverviewCard";
@@ -28,10 +27,9 @@ import { AccessRestrictedCard } from "@/components/profile/AccessRestrictedCard"
 /**
  * The one profile layout for both "my own profile" and "a Bolean user I
  * searched for" — pass a userId for the latter, omit it for the former.
- * What differs between the two is only which endpoints back the data (self
- * has full access to its own analytics/sessions/reviews; another user's
- * session history and reviews are gated behind an approved Permission row);
- * the rendered structure is identical.
+ * Stats come from the same endpoint either way (/analytics/users/{id}): the
+ * backend lets you view yourself freely and requires an approved Permission
+ * for anyone else, and that 403 is what shows the access-restricted card.
  */
 export function ProfileView({ userId }: { userId?: string }) {
   const router = useRouter();
@@ -47,16 +45,14 @@ export function ProfileView({ userId }: { userId?: string }) {
   const otherUserQuery = useUserProfile(isOwnProfile ? undefined : userId);
   const profileUser = isOwnProfile ? currentUser : otherUserQuery.data;
 
-  const analytics = useConsumerAnalytics(isOwnProfile);
+  const analytics = useUserAnalytics(isOwnProfile ? currentUser?.id : userId);
+  const permissionDenied =
+    !isOwnProfile && analytics.isError && (analytics.error as AxiosError)?.response?.status === 403;
+  const hasForeignAccess = !isOwnProfile && analytics.isSuccess;
+
   const ownSessions = useMySessionsAsBorrower(isOwnProfile);
   const ownReviews = useMyReviews(isOwnProfile);
-
-  const foreignSessions = useUserSessionHistory(isOwnProfile ? undefined : userId);
-  const permissionDenied =
-    !isOwnProfile &&
-    foreignSessions.isError &&
-    (foreignSessions.error as AxiosError)?.response?.status === 403;
-  const hasForeignAccess = !isOwnProfile && !foreignSessions.isError && !!foreignSessions.data;
+  const foreignSessions = useUserSessionHistory(hasForeignAccess ? userId : undefined);
   const foreignReviews = useReviewsForUser(isOwnProfile ? undefined : userId, hasForeignAccess);
 
   const handleRequestAccess = async () => {
@@ -78,6 +74,7 @@ export function ProfileView({ userId }: { userId?: string }) {
       // still showing the restricted view — its cached permission state is
       // stale, so refetch instead of showing a confusing "error".
       if (detail === "You already have access") {
+        queryClient.invalidateQueries({ queryKey: ["analytics", "user", userId] });
         queryClient.invalidateQueries({ queryKey: ["sessions", "history", userId] });
         queryClient.invalidateQueries({ queryKey: ["reviews", "user", userId] });
         return;
@@ -107,27 +104,16 @@ export function ProfileView({ userId }: { userId?: string }) {
 
   const sessions = isOwnProfile ? ownSessions.data ?? [] : foreignSessions.data ?? [];
   const reviews = isOwnProfile ? ownReviews.data ?? [] : foreignReviews.data ?? [];
+  const avgRating = analytics.data?.reputation.avg_rating;
 
-  const stats = isOwnProfile
-    ? analytics.data
-      ? [
-          { label: "Total Transacted", value: formatMaloti(analytics.data.kpis.total_transacted) },
-          { label: "Outstanding", value: formatMaloti(analytics.data.kpis.outstanding) },
-          { label: "Sessions", value: String(analytics.data.kpis.sessions_lifetime) },
-          { label: "Completed", value: String(analytics.data.kpis.total_completed) },
-        ]
-      : null
-    : hasForeignAccess
-      ? (() => {
-          const summary = summarizeSessions(sessions);
-          return [
-            { label: "Total Transacted", value: formatMaloti(summary.totalTransacted) },
-            { label: "Outstanding", value: formatMaloti(summary.outstanding) },
-            { label: "Sessions", value: String(summary.sessionsLifetime) },
-            { label: "Completed", value: String(summary.totalCompleted) },
-          ];
-        })()
-      : null;
+  const stats = analytics.data
+    ? [
+        { label: "Total Transacted", value: formatMaloti(analytics.data.kpis.total_transacted) },
+        { label: "Outstanding", value: formatMaloti(analytics.data.kpis.outstanding) },
+        { label: "Sessions", value: String(analytics.data.kpis.sessions_lifetime) },
+        { label: "Completed", value: String(analytics.data.kpis.total_completed) },
+      ]
+    : null;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-5">
@@ -155,9 +141,9 @@ export function ProfileView({ userId }: { userId?: string }) {
         <>
           <OwnIdentityDocumentsCard userId={profileUser.id} />
           {stats && <SessionSummarySection stats={stats} sessions={sessions} viewAllHref="/sessions" />}
-          <ReviewsSection reviews={reviews} avgRating={analytics.data?.reputation.avg_rating} />
+          <ReviewsSection reviews={reviews} avgRating={avgRating} />
         </>
-      ) : foreignSessions.isLoading ? (
+      ) : analytics.isLoading || (hasForeignAccess && foreignSessions.isLoading) ? (
         <Card className="p-10">
           <Skeleton className="h-24" />
         </Card>
@@ -168,10 +154,10 @@ export function ProfileView({ userId }: { userId?: string }) {
           error={requestError}
           onRequestAccess={handleRequestAccess}
         />
-      ) : hasForeignAccess ? (
+      ) : hasForeignAccess && !foreignSessions.isError ? (
         <>
           {stats && <SessionSummarySection stats={stats} sessions={sessions} />}
-          <ReviewsSection reviews={reviews} />
+          <ReviewsSection reviews={reviews} avgRating={avgRating} />
         </>
       ) : (
         <Card className="p-8 text-center">

@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/auth-store";
 import { useCurrentUser } from "@/hooks/useAuth";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
@@ -12,6 +11,15 @@ import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 /**
  * Client-side auth guard — the real gate for this route tree. See
  * src/proxy.ts for why the JWT itself can't be checked at the edge.
+ *
+ * There's no local "am I logged in" flag to check synchronously anymore —
+ * the access token lives in an httpOnly cookie this client can't read, so
+ * useCurrentUser's real network result (backed by that cookie) is the only
+ * source of truth. That means every mount of this layout — including a
+ * plain page reload — fires a real /users/me request rather than assuming
+ * "no local state" means "not logged in"; a valid cookie resolves it
+ * successfully and the dashboard renders normally instead of bouncing to
+ * /login, which is the whole point of having moved off memory-only storage.
  *
  * Biometric verification (the old registration "step 2") lives inside this
  * shell now rather than a separate route: an unverified profile still sees
@@ -23,16 +31,11 @@ import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const token = useAuthStore((s) => s.token);
-  const { data: user, isLoading, isError } = useCurrentUser();
+  const { data: user, isError } = useCurrentUser();
 
   const verified = user?.is_biometrically_verified ?? false;
 
   useEffect(() => {
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
     if (isError) {
       router.replace("/login");
       return;
@@ -40,9 +43,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (user && !verified && pathname !== "/") {
       router.replace("/");
     }
-  }, [token, user, verified, isError, pathname, router]);
+  }, [user, verified, isError, pathname, router]);
 
-  if (!token || isLoading || !user) {
+  if (!user) {
     return <div className="min-h-screen bg-background" />;
   }
 

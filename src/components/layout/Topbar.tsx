@@ -10,7 +10,7 @@ import { PulsingBadge } from "@/components/ui/PulsingBadge";
 import { TalkToAdminButton } from "@/components/support/TalkToAdminButton";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useNotificationBadge } from "@/hooks/useNotificationBadge";
-import type { AuthUser } from "@/store/auth-store";
+import type { UserResponse as AuthUser } from "@/lib/types";
 
 export function Topbar({ user, disabled = false }: { user?: AuthUser; disabled?: boolean }) {
   const [panelOpen, setPanelOpen] = useState(false);

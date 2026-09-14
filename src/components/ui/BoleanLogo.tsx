@@ -1,34 +1,46 @@
 import { clsx } from "clsx";
 
+// Heights, not the old icon-only pixel sizes: the old logo was a small
+// square icon plus separately-sized text next to it, so its "20/24/28/38"
+// scale described just the icon. This is one combined image where the
+// wordmark occupies a fraction of the total height, so sizing it off those
+// same small numbers starved the text — these are chosen to match the old
+// design's *overall width* (icon + gap + text) at each size instead.
 const SIZES = {
-  sm: { px: 20, text: "text-[16px]" },
-  md: { px: 24, text: "text-[19px]" },
-  lg: { px: 28, text: "text-[24px]" },
-  xl: { px: 38, text: "text-[32px]" },
+  sm: 30,
+  md: 35,
+  lg: 42,
+  xl: 57,
 } as const;
 
-export function BoleanLogo({ size = "md" }: { size?: keyof typeof SIZES }) {
-  const cfg = SIZES[size];
+// Intrinsic aspect ratio of public/bolean-logo.png (1762x635), so each named
+// size only has to specify a height — width follows automatically.
+const ASPECT_RATIO = 1762 / 635;
+
+export function BoleanLogo({
+  size = "md",
+  onDark = false,
+}: {
+  size?: keyof typeof SIZES;
+  /** The mark's baked-in teal reads fine on light surfaces but is nearly
+   *  invisible on the app's near-black dark ones — measured well under
+   *  WCAG contrast against #0A0A0A. `dark:` alone only fixes contexts that
+   *  actually follow the site theme (sidebar, mobile header); pass this for
+   *  a surface that's *always* dark regardless of theme (BrandPanel). */
+  onDark?: boolean;
+}) {
+  const height = SIZES[size];
+  const width = Math.round(height * ASPECT_RATIO);
+
   return (
-    <div className={clsx("flex items-center select-none", size === "xl" ? "gap-3.5" : "gap-2.5")}>
-      <svg width={cfg.px} height={cfg.px} viewBox="0 0 24 24" fill="none">
-        {/* mostly-solid verification ring, open at the upper-left where a
-            dotted arc picks up instead — echoes a scan sweeping to complete */}
-        <path d="M10.61 4.12A8 8 0 1 1 4.12 10.61" stroke="var(--primary)" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-        <path
-          d="M4.12 10.61A8 8 0 0 1 10.61 4.12"
-          stroke="var(--primary)"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeDasharray="0.1 2.3"
-          opacity="0.55"
-          fill="none"
-        />
-        <circle cx="10.61" cy="4.12" r="0.9" fill="var(--primary)" />
-        <circle cx="4.12" cy="10.61" r="0.9" fill="var(--primary)" opacity="0.7" />
-        <path d="M8.5 12.2l2.3 2.3 4.7-4.9" stroke="var(--primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      </svg>
-      <span className={clsx("font-display font-semibold text-foreground", cfg.text)}>Bolean</span>
-    </div>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/bolean-logo.png"
+      alt="Bolean"
+      width={width}
+      height={height}
+      className={clsx("select-none", onDark ? "brightness-150" : "dark:brightness-150")}
+      style={{ width, height }}
+    />
   );
 }

@@ -76,13 +76,13 @@ export default function SessionsPage() {
           <Skeleton className="h-14" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-border/60 flex flex-col items-center gap-2 py-16">
+        <div className="rounded-2xl border border-border/60 bg-card shadow-card flex flex-col items-center gap-2 py-16">
           <InboxIcon size={22} className="text-muted-foreground opacity-40" />
           <p className="text-sm text-muted-foreground">No sessions in this view.</p>
         </div>
       ) : (
         <>
-          <div className="hidden lg:block overflow-x-auto rounded-2xl border border-border/60">
+          <div className="hidden lg:block overflow-x-auto rounded-2xl border border-border/60 bg-card shadow-card">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="text-left border-b border-border/60">
@@ -121,7 +121,7 @@ export default function SessionsPage() {
             </table>
           </div>
 
-          <div className="lg:hidden divide-y divide-border/60 rounded-2xl border border-border/60 overflow-hidden">
+          <div className="lg:hidden divide-y divide-border/60 rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden">
             {filtered.map((session) => (
               <SessionRowMobile key={session.id} session={session} onOpen={() => router.push(`/sessions/${session.id}`)} />
             ))}

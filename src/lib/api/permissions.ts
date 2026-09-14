@@ -2,7 +2,7 @@ import { apiClient } from "@/lib/api/client";
 import type { PermissionItem } from "@/lib/types";
 
 export async function fetchIncomingPermissions(): Promise<PermissionItem[]> {
-  const { data } = await apiClient.get<PermissionItem[]>("/permissions/");
+  const { data } = await apiClient.get<PermissionItem[]>("/permissions");
   return data;
 }
 

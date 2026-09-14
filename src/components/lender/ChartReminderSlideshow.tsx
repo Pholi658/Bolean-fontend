@@ -52,7 +52,7 @@ export function ChartReminderSlideshow({ monthlyCollections }: { monthlyCollecti
 
   return (
     <div className="lg:hidden" onClick={() => setAutoplay(false)}>
-      <div className="rounded-2xl border border-border/60 overflow-hidden">
+      <div className="rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden">
         <div
           ref={scrollerRef}
           onScroll={handleScroll}

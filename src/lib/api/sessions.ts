@@ -16,7 +16,7 @@ export interface CreateSessionPayload {
 }
 
 export async function createSession(payload: CreateSessionPayload): Promise<{ message: string }> {
-  const { data } = await apiClient.post("/sessions/", payload);
+  const { data } = await apiClient.post("/sessions", payload);
   return data;
 }
 

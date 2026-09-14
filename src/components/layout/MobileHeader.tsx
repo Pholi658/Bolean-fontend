@@ -7,7 +7,7 @@ import { clsx } from "clsx";
 import { BoleanLogo } from "@/components/ui/BoleanLogo";
 import { PulsingBadge } from "@/components/ui/PulsingBadge";
 import { useNotificationBadge } from "@/hooks/useNotificationBadge";
-import type { AuthUser } from "@/store/auth-store";
+import type { UserResponse as AuthUser } from "@/lib/types";
 
 /**
  * Mobile equivalent of Topbar — same profile avatar (same /profile

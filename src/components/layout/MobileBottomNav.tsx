@@ -8,7 +8,7 @@ import { LayoutDashboard, User, Inbox, ListChecks, Search, PlusCircle, Menu } fr
 import { MobileMoreDrawer } from "@/components/layout/MobileMoreDrawer";
 import { PulsingBadge } from "@/components/ui/PulsingBadge";
 import { useInboxBadge } from "@/hooks/useInboxBadge";
-import type { AuthUser } from "@/store/auth-store";
+import type { UserResponse as AuthUser } from "@/lib/types";
 
 function TabButton({
   icon: Icon,

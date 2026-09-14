@@ -35,12 +35,12 @@ export default function InboxPage() {
           <Skeleton className="h-24" />
         </div>
       ) : isEmpty ? (
-        <div className="rounded-2xl border border-border/60 flex flex-col items-center gap-2 py-20">
+        <div className="rounded-2xl border border-border/60 bg-card shadow-card flex flex-col items-center gap-2 py-20">
           <InboxIcon size={22} className="text-muted-foreground opacity-40" />
           <p className="text-sm text-muted-foreground">Nothing pending right now.</p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-border/60 overflow-hidden">
+        <div className="rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden">
           {pendingSessions.map((session) => (
             <SessionOfferRow
               key={session.id}

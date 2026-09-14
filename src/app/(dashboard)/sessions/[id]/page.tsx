@@ -40,7 +40,7 @@ export default function SessionDetailPage() {
         <ChevronLeft size={15} /> Back to Sessions
       </button>
 
-      <div className="rounded-2xl border border-border/60 p-4 sm:p-7">
+      <div className="rounded-2xl border border-border/60 bg-card shadow-card p-4 sm:p-7">
         <div className="flex items-start justify-between gap-3 mb-6">
           <div className="min-w-0">
             <p className="text-[11px] font-mono text-muted-foreground mb-1">#{session.id.slice(0, 8)}</p>

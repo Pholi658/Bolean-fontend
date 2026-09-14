@@ -1,36 +1,40 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { isAxiosError } from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchCurrentUser,
   login,
+  logout as logoutRequest,
   registerAccount,
   type LoginPayload,
   type RegisterAccountPayload,
 } from "@/lib/api/auth";
-import { useAuthStore } from "@/store/auth-store";
-import { setSessionHintCookie, clearSessionHintCookie } from "@/lib/session-hint";
+import { setSessionHintCookie, clearSessionHintCookie, hasSessionHint } from "@/lib/session-hint";
 
 export const CURRENT_USER_QUERY_KEY = ["users", "me"] as const;
 
-export function useCurrentUser() {
-  const token = useAuthStore((s) => s.token);
+// Source of truth for "who is logged in": the token is an httpOnly cookie this client can't read, so ask the backend.
+export function useCurrentUser(enabled = true) {
   return useQuery({
     queryKey: CURRENT_USER_QUERY_KEY,
     queryFn: fetchCurrentUser,
-    enabled: !!token,
     staleTime: 5 * 60_000,
+    enabled,
+    // A 401 never changes on retry — fail fast so the dashboard guard redirects at once.
+    retry: (failureCount, error) => failureCount < 1 && !(isAxiosError(error) && error.response?.status === 401),
   });
 }
 
 export function useLoginMutation() {
-  const setAuth = useAuthStore((s) => s.setAuth);
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (payload: LoginPayload) => login(payload),
-    onSuccess: async (data) => {
-      setAuth(data.access_token);
+    onSuccess: async () => {
+      // The response already set the access_token cookie — nothing for this
+      // client to store. has_session is a separate, non-sensitive hint
+      // cookie for the edge middleware (see src/proxy.ts) and the auth pages.
       setSessionHintCookie();
       await queryClient.invalidateQueries({ queryKey: CURRENT_USER_QUERY_KEY });
     },
@@ -38,54 +42,40 @@ export function useLoginMutation() {
 }
 
 export function useRegisterAccountMutation() {
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (payload: RegisterAccountPayload) => registerAccount(payload),
-    onSuccess: (data) => {
-      setAuth(data.access_token);
+    onSuccess: async () => {
       setSessionHintCookie();
+      await queryClient.invalidateQueries({ queryKey: CURRENT_USER_QUERY_KEY });
     },
   });
 }
 
 export function useLogout() {
-  const clearAuth = useAuthStore((s) => s.clearAuth);
   const queryClient = useQueryClient();
 
   return () => {
-    clearAuth();
+    // Best-effort: even if the network call fails, still clear local state
+    // and navigate away — a user must never be stuck unable to log out
+    // client-side just because the logout request itself didn't land. The
+    // cookie is httpOnly, so only this request can actually clear it; a
+    // failure here means the cookie may outlive its intended session (it
+    // still expires on its own after ACCESS_TOKEN_EXPIRE_HOURS either way).
+    logoutRequest().catch(() => {});
     clearSessionHintCookie();
     queryClient.clear();
     window.location.assign("/login");
   };
 }
 
-/**
- * For /login and /register: if a token already exists the moment this page
- * mounts (e.g. opened in a new tab while already logged in elsewhere),
- * skip straight to the dashboard. Checks the store's value once on mount
- * rather than subscribing to it — these pages set the token themselves
- * right before their own onSubmit navigates to "/"; subscribing here would
- * race that navigation. "/" is the only destination now regardless of
- * verification status — the dashboard renders the biometric verification
- * step in place of the normal home content until the profile is verified,
- * instead of a separate route.
- *
- * This used to trap anyone mid-registration (token exists, not yet
- * biometrically verified): a soft nav to /login doesn't clear the
- * in-memory token, so this hook bounced them straight back into the
- * dashboard guard, which bounced them straight back to the verification
- * step, with no way out. The actual fix for that is an explicit "Log out"
- * button in the sidebar (via useLogout, which clears the token for real
- * before navigating) — not removing this redirect, which is a real nicety
- * for genuinely-finished sessions.
- */
+// On /login and /register, jump to "/" if already logged in — only probes when has_session exists, so logged-out visitors don't 401.
 export function useRedirectIfAuthenticated() {
   const router = useRouter();
+  const { data: user } = useCurrentUser(hasSessionHint());
 
   useEffect(() => {
-    if (useAuthStore.getState().token) router.replace("/");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (user) router.replace("/");
+  }, [user, router]);
 }

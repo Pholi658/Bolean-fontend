@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api/client";
-import type { AuthUser } from "@/store/auth-store";
+import type { UserResponse } from "@/lib/types";
 
 export interface LoginPayload {
   email: string;
@@ -54,7 +54,13 @@ export async function submitBiometrics(
   return data;
 }
 
-export async function fetchCurrentUser(): Promise<AuthUser> {
-  const { data } = await apiClient.get<AuthUser>("/users/me");
+export async function fetchCurrentUser(): Promise<UserResponse> {
+  const { data } = await apiClient.get<UserResponse>("/users/me");
   return data;
+}
+
+export async function logout(): Promise<void> {
+  // The access_token cookie is httpOnly, so this client can't clear it
+  // itself — only the server can, via Set-Cookie in this response.
+  await apiClient.post("/auth/logout");
 }

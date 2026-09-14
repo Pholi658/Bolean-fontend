@@ -8,7 +8,7 @@ import { InboxNavItem } from "@/components/layout/InboxNavItem";
 import { TalkToAdminButton } from "@/components/support/TalkToAdminButton";
 import { SidebarSettings } from "@/components/layout/SidebarSettings";
 import { useLogout } from "@/hooks/useAuth";
-import type { AuthUser } from "@/store/auth-store";
+import type { UserResponse as AuthUser } from "@/lib/types";
 
 function NavGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (

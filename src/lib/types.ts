@@ -70,6 +70,7 @@ export interface PaginatedLenderSessions {
 export interface ReviewOut {
   id: string;
   msg: string;
+  rating: number;
   reviewed_user_id: string;
   reviewer_id: string;
   session_id: string;
@@ -138,7 +139,7 @@ export interface SessionUrgentItem {
   status: SessionStatus;
 }
 
-export interface ConsumerAnalytics {
+export interface ProfileStats {
   kpis: {
     total_transacted: number;
     outstanding: number;
@@ -150,12 +151,17 @@ export interface ConsumerAnalytics {
     total_completed: number;
     member_since: string | null;
   };
+}
+
+export interface ConsumerAnalytics extends ProfileStats {
   urgent_sessions: SessionUrgentItem[];
   overdue_sessions: SessionUrgentItem[];
 }
 
 export interface LenderAnalytics {
   stats: {
+    overdue_amount: number;
+    overdue_count: number;
     issued_total: number;
     total_distributed: number;
     active_amount: number;

@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchMyReviews, fetchReviewsForUser, submitReview } from "@/lib/api/reviews";
 
 export function useMyReviews(enabled = true) {
@@ -26,7 +26,15 @@ export function useReviewsForUser(userId: string | undefined, enabled = true) {
 }
 
 export function useSubmitReview(sessionId: string) {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: { rating: number; msg: string }) => submitReview(sessionId, payload),
+    // A new review changes the borrower's average rating and the session's detail view.
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["analytics"] }),
+        queryClient.invalidateQueries({ queryKey: ["reviews"] }),
+        queryClient.invalidateQueries({ queryKey: ["sessions", "detail", sessionId] }),
+      ]),
   });
 }

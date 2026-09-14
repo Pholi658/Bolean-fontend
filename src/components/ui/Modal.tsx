@@ -26,7 +26,12 @@ export function Modal({ children, onClose, size = "sm" }: ModalProps) {
 
   return createPortal(
     <div
-      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+      // Above every other portalled overlay in the app (full-screen
+      // takeovers like MobileVerificationFlow/IdentityConfirmationModal
+      // included, both z-[100]) — a modal can be opened from inside one of
+      // those (e.g. "Talk to Admin" from the registration failure screen)
+      // and must never render underneath it.
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[150] p-4"
       onClick={onClose}
     >
       <div

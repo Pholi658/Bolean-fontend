@@ -1,4 +1,5 @@
 import { ShieldCheck, Star, Lock } from "lucide-react";
+import { BoleanLogo } from "@/components/ui/BoleanLogo";
 
 const FEATURES = [
   { icon: ShieldCheck, label: "Verified identity", desc: "Real ID and biometric checks, not self-reported claims." },
@@ -30,27 +31,13 @@ export function BrandPanel() {
         style={{ filter: "blur(140px)", top: "-140px", left: "-140px" }}
       />
 
-      {/* This panel is fixed-dark in both site themes (see the component
-          note above), so its icon uses a fixed accent color too — light
-          mode's --primary is calibrated for light backgrounds and would go
-          muddy against this permanently-dark panel otherwise. */}
-      <div className="relative flex items-center gap-2.5">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-          <path d="M10.61 4.12A8 8 0 1 1 4.12 10.61" stroke="#4FA69D" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-          <path
-            d="M4.12 10.61A8 8 0 0 1 10.61 4.12"
-            stroke="#4FA69D"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeDasharray="0.1 2.3"
-            opacity="0.55"
-            fill="none"
-          />
-          <circle cx="10.61" cy="4.12" r="0.9" fill="#4FA69D" />
-          <circle cx="4.12" cy="10.61" r="0.9" fill="#4FA69D" opacity="0.7" />
-          <path d="M8.5 12.2l2.3 2.3 4.7-4.9" stroke="#4FA69D" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        </svg>
-        <span className="font-display font-semibold text-xl text-white">Bolean</span>
+      {/* BoleanLogo is a fixed-color image now (not theme-adaptive SVG), so
+          it renders identically here regardless of this panel's permanent
+          dark background — no more need for a separate hardcoded-color
+          duplicate of the mark. onDark since this panel is always dark
+          regardless of site theme, unlike the sidebar/header's dark: fix. */}
+      <div className="relative">
+        <BoleanLogo size="lg" onDark />
       </div>
 
       <div className="relative space-y-8">

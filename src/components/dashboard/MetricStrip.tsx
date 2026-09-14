@@ -39,7 +39,7 @@ export function MetricStrip({ metrics, featuredIndex }: { metrics: Metric[]; fea
           <div
             key={m.label}
             className={clsx(
-              "bg-background border border-border/60 rounded-2xl px-5 py-4 sm:px-8 sm:py-6 hover:border-border hover:bg-foreground/[0.015] transition-colors",
+              "bg-card border border-border/60 shadow-card rounded-2xl px-5 py-4 sm:px-8 sm:py-6 hover:border-border hover:bg-foreground/[0.015] transition-colors",
               isBento && "sm:col-auto sm:row-auto sm:row-span-1 sm:flex-none sm:justify-normal",
               isFeatured && "col-start-1 row-start-1 row-span-2 flex flex-col justify-center",
               isBento && !isFeatured && otherRank === 0 && "col-start-2 row-start-1",

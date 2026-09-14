@@ -65,7 +65,12 @@ export function useUserSessionHistory(userId: string | undefined) {
 
 function useInvalidateSessions() {
   const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: ["sessions"] });
+  // Session status changes move the profile and dashboard stats too.
+  return () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["sessions"] }),
+      queryClient.invalidateQueries({ queryKey: ["analytics"] }),
+    ]);
 }
 
 export function useCreateSession() {

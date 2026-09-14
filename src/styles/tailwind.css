@@ -11,4 +11,20 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none; /* Chrome, Safari, new Edge */
   }
+
+  /* Desktop-only override of .no-scrollbar (must stay after it): a thin scrollbar so overflow is discoverable. */
+  @media (width >= 64rem) {
+    .lg-thin-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(in srgb, var(--muted-foreground) 45%, transparent) transparent;
+    }
+    .lg-thin-scrollbar::-webkit-scrollbar {
+      display: block;
+      width: 6px;
+    }
+    .lg-thin-scrollbar::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--muted-foreground) 45%, transparent);
+      border-radius: 9999px;
+    }
+  }
 }

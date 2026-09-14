@@ -2,7 +2,7 @@ import { apiClient } from "@/lib/api/client";
 import type { PaginatedNotifications, NotificationResponse } from "@/lib/types";
 
 export async function fetchNotifications(page: number, limit: number): Promise<PaginatedNotifications> {
-  const { data } = await apiClient.get<PaginatedNotifications>("/notifications/", {
+  const { data } = await apiClient.get<PaginatedNotifications>("/notifications", {
     params: { page, limit },
   });
   return data;

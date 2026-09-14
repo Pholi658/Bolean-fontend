@@ -40,7 +40,7 @@ export function DisputeCard({
   if (!dispute && !eligible) return null;
 
   return (
-    <div className="rounded-2xl border border-border/60 p-6">
+    <div className="rounded-2xl border border-border/60 bg-card shadow-card p-6">
       <div className="flex items-start gap-3.5">
         <div className="w-10 h-10 rounded-full bg-dispute/10 flex items-center justify-center flex-shrink-0">
           <Flag size={16} className="text-dispute" />

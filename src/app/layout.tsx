@@ -27,6 +27,9 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Bolean",
   description: "Peer-to-peer credit reputation and background verification for Lesotho.",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 // Runs before first paint, blocking, so the page never flashes the wrong

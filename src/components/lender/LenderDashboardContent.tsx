@@ -6,23 +6,32 @@ import { clsx } from "clsx";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Pagination } from "@/components/ui/Pagination";
-import { MetricStrip } from "@/components/dashboard/MetricStrip";
 import { CollectedVsDisbursedChart } from "@/components/lender/CollectedVsDisbursedChart";
 import { UnconfirmedReminderNote } from "@/components/lender/UnconfirmedReminderNote";
 import { ChartReminderSlideshow } from "@/components/lender/ChartReminderSlideshow";
-import { OverdueSessionsCard } from "@/components/lender/OverdueSessionsCard";
+import { OverdueAmountCard } from "@/components/lender/OverdueAmountCard";
 import { useLenderAnalytics } from "@/hooks/useAnalytics";
 import { useMySessionsAsLender } from "@/hooks/useSessions";
 import { formatDate, formatMaloti, formatTransactionType } from "@/lib/format";
 import type { LenderSessionItem } from "@/lib/types";
 
-function MobileKpiCell({
+/**
+ * One of the three KPIs stacked beside the Overdue card. Narrow columns
+ * (mobile, and lg where the sidebar eats the width) keep label-over-value
+ * with no indicator line, so the stack stays shorter than the Overdue card
+ * instead of stretching it into a hollow gap; from xl there's room to put
+ * the value on the right and bring the indicator back beside the label.
+ */
+function StackedKpiCard({
   label,
+  shortLabel,
   value,
   indicator,
   className,
 }: {
   label: string;
+  /** Mobile column is ~150px — long uppercase labels would truncate. */
+  shortLabel?: string;
   value: string;
   indicator: React.ReactNode;
   className?: string;
@@ -30,13 +39,22 @@ function MobileKpiCell({
   return (
     <div
       className={clsx(
-        "rounded-2xl border border-border/60 bg-background px-5 py-4 flex flex-col justify-center hover:border-border hover:bg-foreground/[0.015] transition-colors",
+        "rounded-2xl border border-border/60 bg-card shadow-card min-w-0 px-4 py-3 lg:px-6 lg:py-4 xl:px-7",
+        "flex flex-col justify-center xl:flex-row xl:items-center xl:justify-between xl:gap-6",
+        "hover:border-border hover:bg-foreground/[0.015] transition-colors",
         className,
       )}
     >
-      <p className="text-[10.5px] font-medium tracking-[0.09em] text-muted-foreground uppercase">{label}</p>
-      <p className="font-display font-semibold text-[28px] text-foreground leading-[1.1] mt-2">{value}</p>
-      <div className="mt-2">{indicator}</div>
+      <div className="min-w-0">
+        <p className="text-[10px] lg:text-[10.5px] font-medium tracking-[0.09em] text-muted-foreground uppercase truncate">
+          <span className="lg:hidden">{shortLabel ?? label}</span>
+          <span className="hidden lg:inline">{label}</span>
+        </p>
+        <div className="hidden xl:block mt-1.5">{indicator}</div>
+      </div>
+      <p className="font-display font-semibold text-[20px] lg:text-[26px] xl:text-[28px] text-foreground leading-[1.1] tabular-nums mt-1 lg:mt-1.5 xl:mt-0 flex-shrink-0">
+        {value}
+      </p>
     </div>
   );
 }
@@ -82,86 +100,53 @@ export default function LenderDashboardContent() {
         </p>
       </div>
 
-      {/* Mobile: a fixed 2x2 grid instead of MetricStrip's bento — the
-          featured "Active Amount" card now shares its column with the new
-          Overdue card rather than taking the full column height. Desktop
-          keeps the original 3-card row (MetricStrip), unchanged. */}
-      {analyticsLoading || !analytics ? (
-        <>
-          <div className="lg:hidden grid grid-cols-2 grid-rows-2 gap-3">
-            <Skeleton className="h-[104px]" />
-            <Skeleton className="h-[104px]" />
-            <Skeleton className="h-[104px]" />
-            <Skeleton className="h-[104px]" />
-          </div>
-          <div className="hidden lg:grid grid-cols-3 gap-4">
-            <Skeleton className="h-[128px]" />
-            <Skeleton className="h-[128px]" />
-            <Skeleton className="h-[128px]" />
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="lg:hidden grid grid-cols-2 grid-rows-2 gap-3">
-            {/* Left column: Active Amount (top) + Overdue (bottom) — the
-                old full-height featured card, cut in half to make room.
-                Right column: unchanged from before, just no longer stretched
-                to match a full-height neighbor. Placement is explicit
-                (not left to grid auto-flow) so each stays in its column. */}
-            <MobileKpiCell
-              className="col-start-1 row-start-1"
+      {/* Overdue leads on its own full-height card; the three running totals
+          stack beside it. Same composition at every width — only sizing and
+          each card's internal layout adapt. Placement is explicit so the
+          stack never auto-flows into the left column. */}
+      <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:grid-cols-2 grid-rows-3 gap-3 lg:gap-4">
+        {analyticsLoading || !analytics ? (
+          <>
+            <Skeleton className="col-start-1 row-start-1 row-span-3 rounded-2xl" />
+            <Skeleton className="col-start-2 row-start-1 rounded-2xl h-[68px] lg:h-[84px] xl:h-[92px]" />
+            <Skeleton className="col-start-2 row-start-2 rounded-2xl h-[68px] lg:h-[84px] xl:h-[92px]" />
+            <Skeleton className="col-start-2 row-start-3 rounded-2xl h-[68px] lg:h-[84px] xl:h-[92px]" />
+          </>
+        ) : (
+          <>
+            <OverdueAmountCard
+              className="col-start-1 row-start-1 row-span-3"
+              amount={analytics.stats.overdue_amount}
+              count={analytics.stats.overdue_count}
+            />
+            <StackedKpiCard
+              className="col-start-2 row-start-1"
               label="Active Amount"
               value={formatMaloti(analytics.stats.active_amount)}
               indicator={
-                <span className="text-[11.5px] flex items-center gap-1.5 text-warning">
-                  <span className="w-1.5 h-1.5 rounded-full bg-warning" />
+                <span className="text-[11.5px] flex items-center gap-1.5 text-muted-foreground">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                   Currently outstanding
                 </span>
               }
             />
-            <OverdueSessionsCard className="col-start-1 row-start-2" />
-            <MobileKpiCell
-              className="col-start-2 row-start-1"
-              label="Total Sessions Issued"
-              value={String(analytics.stats.issued_total)}
-              indicator={<span className="text-[11.5px] text-muted-foreground">Lifetime issued</span>}
-            />
-            <MobileKpiCell
+            <StackedKpiCard
               className="col-start-2 row-start-2"
               label="Total Distributed"
+              shortLabel="Distributed"
               value={formatMaloti(analytics.stats.total_distributed)}
               indicator={<span className="text-[11.5px] text-muted-foreground">Collected to date</span>}
             />
-          </div>
-
-          <div className="hidden lg:block">
-            <MetricStrip
-              metrics={[
-                {
-                  label: "Total Sessions Issued",
-                  value: String(analytics.stats.issued_total),
-                  indicator: <span className="text-[11.5px] text-muted-foreground">Lifetime issued</span>,
-                },
-                {
-                  label: "Active Amount",
-                  value: formatMaloti(analytics.stats.active_amount),
-                  indicator: (
-                    <span className="text-[11.5px] flex items-center gap-1.5 text-warning">
-                      <span className="w-1.5 h-1.5 rounded-full bg-warning" />
-                      Currently outstanding
-                    </span>
-                  ),
-                },
-                {
-                  label: "Total Distributed",
-                  value: formatMaloti(analytics.stats.total_distributed),
-                  indicator: <span className="text-[11.5px] text-muted-foreground">Collected to date</span>,
-                },
-              ]}
+            <StackedKpiCard
+              className="col-start-2 row-start-3"
+              label="Total Sessions Issued"
+              shortLabel="Sessions Issued"
+              value={String(analytics.stats.issued_total)}
+              indicator={<span className="text-[11.5px] text-muted-foreground">Lifetime issued</span>}
             />
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
 
       {/* Desktop: chart and reminder side by side, unchanged. Mobile: they
           used to just stack full-width — now they auto-play as a two-slide
@@ -215,7 +200,7 @@ export default function LenderDashboardContent() {
           <>
             {/* Desktop: full six-column table. Mobile: the same session
                 data recomposed as a scannable card list below. */}
-            <div className="hidden lg:block overflow-x-auto rounded-2xl border border-border/60">
+            <div className="hidden lg:block overflow-x-auto rounded-2xl border border-border/60 bg-card shadow-card">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="text-left border-b border-border/60">
@@ -258,7 +243,7 @@ export default function LenderDashboardContent() {
               </table>
             </div>
 
-            <div className="lg:hidden divide-y divide-border/60 rounded-2xl border border-border/60 overflow-hidden">
+            <div className="lg:hidden divide-y divide-border/60 rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden">
               {sessions.items.map((item) => (
                 <SessionRowMobile key={item.id} item={item} onOpen={() => router.push(`/lender/sessions/${item.id}`)} />
               ))}

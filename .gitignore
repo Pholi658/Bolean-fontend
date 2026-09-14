@@ -20,3 +20,6 @@ npm-debug.log*
 # editor/local-only
 .history/
 .scratch-verify/
+
+# Sentry Config File
+.env.sentry-build-plugin
