@@ -68,18 +68,26 @@ export function useCameraCapture(onCaptured: (blob: Blob) => void, autoStart = f
     if (!videoRef.current || !videoRef.current.videoWidth || !videoRef.current.videoHeight) return;
     setCapturing(true);
     setQualityMessage(null);
-    const canvas = captureFrameToCanvas(videoRef.current);
-    const quality = checkImageQuality(canvas);
+    // `finally`, not just the failure path: mobile keeps this hook mounted
+    // through review, so a successful capture that left `capturing` true
+    // would leave the shutter spinning (and disabled) after Retake.
+    try {
+      const canvas = captureFrameToCanvas(videoRef.current);
+      const quality = checkImageQuality(canvas);
 
-    if (!quality.passed) {
-      setQualityMessage(quality.message ?? "Image too dark or blurry. Please retake in better lighting.");
+      if (!quality.passed) {
+        setQualityMessage(quality.message ?? "Image too dark or blurry. Please retake in better lighting.");
+        return;
+      }
+
+      const blob = await canvasToBlob(canvas);
+      stopStream();
+      onCaptured(blob);
+    } catch {
+      setQualityMessage("Couldn't process that photo. Please try again.");
+    } finally {
       setCapturing(false);
-      return;
     }
-
-    const blob = await canvasToBlob(canvas);
-    stopStream();
-    onCaptured(blob);
   }, [onCaptured, stopStream]);
 
   return {
