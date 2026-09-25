@@ -52,7 +52,7 @@ export function isDuplicateFaceError(error: unknown): boolean {
 }
 
 /** Turns any error from the API client into a message that's safe to show the user. */
-export function getFriendlyErrorMessage(error: unknown): string {
+export function  getFriendlyErrorMessage(error: unknown): string {
   if (error instanceof AxiosError) {
     if (error.response?.status === 429) return RATE_LIMIT_MESSAGE;
 

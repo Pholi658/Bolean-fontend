@@ -33,7 +33,7 @@ export function MobileVerificationFlow() {
   const [activeSlide, setActiveSlide] = useState<0 | 1>(0);
   const [selfieBlob, setSelfieBlob] = useState<Blob | null>(null);
   const [idFile, setIdFile] = useState<File | null>(null);
-  const { submitStatus, uploadProgress, errorMessage, isDuplicate, submit } = useBiometricSubmission();
+  const { submitStatus, uploadProgress, errorMessage, isDuplicate, submit, reset } = useBiometricSubmission();
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -55,6 +55,9 @@ export function MobileVerificationFlow() {
   };
 
   const handleRetry = () => {
+    // Clearing the status is what actually dismisses the result panel —
+    // this view renders on `submitStatus`, not on the slide index.
+    reset();
     // A failed submission (e.g. the duplicate-face rejection) is most often
     // really about the face capture, so retry lands back on that slide.
     setActiveSlide(0);

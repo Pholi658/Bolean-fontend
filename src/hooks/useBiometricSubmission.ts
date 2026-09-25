@@ -54,5 +54,15 @@ export function useBiometricSubmission() {
     }
   };
 
-  return { submitStatus, uploadProgress, errorMessage, isDuplicate, submit };
+  // Back to "nothing submitted yet" — callers that render the result panel
+  // off `submitStatus` (MobileVerificationFlow) need this to leave it on
+  // retry, otherwise the panel keeps winning and the retry looks dead.
+  const reset = () => {
+    setSubmitStatus(null);
+    setUploadProgress(0);
+    setErrorMessage(null);
+    setIsDuplicate(false);
+  };
+
+  return { submitStatus, uploadProgress, errorMessage, isDuplicate, submit, reset };
 }
